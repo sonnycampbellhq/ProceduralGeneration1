@@ -1,32 +1,12 @@
 public class ProceduralGeneration2D {
   /* RULES TO IMPLEMENT
-  Island max height (can't be on top x layers? (just initialise i to x)) - done
-  
-  Length maximum (array of decreasing chances), relative to the width of the world, resets on new line - done
-
-  Shape the islands (check the 5 pixels above?) - done
-
-  Min distance between island directly above - when spawning any island node, make sure 2 tiles above are empty, or don't spawn and reset reset extension - done
-
-  Min distance between island horizontally (check left and right when spawning node, don't check own island...) - done
-
-
-  DO::
-  Max height and width between islands (record the k,i position of the current lowest (top of an) island. If it has been x rows since lowest island, guarantee spawn an island this row)
-  Also make the vertical check check from 1 before and 1 after any island surface too
-
   Consider doing 2 passes? 1 for the surfaces following the spawn rules, another to add / and |
-
-  Change it back to an int array (easier interpretation in unity), but the print function interprets it to chars
   */
 
   public static void main(String[] args){
-
     int height=20;
     int width=150;
     int[][] world = new int[width][height];
-
-    int[] column = new int[height];
 
     int maxIslandLength = (int)Math.max((width/2), 1);
     double[] islandExtensionChances = new double[maxIslandLength+1];
@@ -37,17 +17,24 @@ public class ProceduralGeneration2D {
 
     boolean spawn=false;
 
-    double spawnChance = 0.02;
+    double spawnChance = 0.001;
     double growChance = 0.9;//chance a tile with 4 or 5 parents also turns into a non-0 tile
     double dripChance = 0.4;//chance any applicable tile with a vertical parent also turns into a non-0 tile
+
     int extensionNum=0;
 
     boolean hasVerticalSpace;
     boolean hasHorizontalSpace;
 
-    int lastSpawn;
-    int horizontalSpawnDistance = 4;
-    int verticalSpawnDistance = 4;
+    int lastSpawnXThisRow;
+    int horizontalSpawnDistance = 5;
+    int verticalSpawnDistance = 1;
+
+    int lastSpawnY=1;
+    int highVerticalDistance=3;//if it reaches this many rows since last surface, each row will run repeatMax times for increased chance at surface spawn
+    
+    int repeatMax=5;
+    int repeatCount=0;
 
     int lParent=0;
     int rParent=0;
@@ -56,21 +43,26 @@ public class ProceduralGeneration2D {
 
     // create islands
     for(int i=2; i<height; i++){
-      lastSpawn = -horizontalSpawnDistance-1;
+      lastSpawnXThisRow = -horizontalSpawnDistance-1;
+      if(i-lastSpawnY>highVerticalDistance&&repeatCount<=repeatMax){
+        i--;
+        repeatCount++;
+      }
+      else{
+        repeatCount=0;
+      }
+
       for(int k=0; k<width; k++){
         val=(Math.random());
 
         hasVerticalSpace = verticalCheck(world, k, i, verticalSpawnDistance);
-        hasHorizontalSpace = k-lastSpawn>horizontalSpawnDistance?true:false;
-
-        if(hasVerticalSpace){
-          column = world[k];
-        }
+        hasHorizontalSpace = k-lastSpawnXThisRow>horizontalSpawnDistance?true:false;
 
         if(extensionNum!=0&&hasVerticalSpace){
           if(val<islandExtensionChances[extensionNum]){
             world[k][i]=1;
-            lastSpawn=k;
+            lastSpawnXThisRow=k;
+            lastSpawnY=i;
             extensionNum++;
           }
           else{
@@ -94,17 +86,18 @@ public class ProceduralGeneration2D {
 
           if(numParents>=4&&val<growChance*(numParents/5)){
             world[k][i]=3;
-            lastSpawn=k;
+            lastSpawnXThisRow=k;
             extensionNum=0;
           }
           else if(world[k][i-1]!=0&&val<dripChance&&hasHorizontalSpace){ // check for horizontal space?
             world[k][i]=4;
-            lastSpawn=k;
+            lastSpawnXThisRow=k;
             extensionNum=0;
           }
           else if(spawn&&hasVerticalSpace&&hasHorizontalSpace){
             world[k][i]=1;
-            lastSpawn=k;
+            lastSpawnXThisRow=k;
+            lastSpawnY = i;
             spawn=false;
             extensionNum++;
           }
