@@ -45,6 +45,7 @@ public class ProceduralGeneration2D {
 
     int lastSpawn;
     int horizontalSpawnDistance = 4;
+    int verticalSpawnDistance = 10;
 
     int lParent=0;
     int rParent=0;
@@ -57,7 +58,7 @@ public class ProceduralGeneration2D {
       for(int k=0; k<width; k++){
         val=(Math.random());
 
-        hasVerticalSpace = verticalCheck(world[k][i-1], world[k][i-2]);
+        hasVerticalSpace = verticalCheck(world[k], i, verticalSpawnDistance);
         hasHorizontalSpace = k-lastSpawn>horizontalSpawnDistance?true:false;
 
         if(extensionNum!=0&&hasVerticalSpace){
@@ -107,11 +108,14 @@ public class ProceduralGeneration2D {
     printWorldArray(world);
   }
 
-  static boolean verticalCheck(int a, int b){
-    if(a==0&&b==0){
-      return true;
+  static boolean verticalCheck(int[] column, int startHeight, int distance){
+    int end = Math.max(startHeight-distance, 0);
+    for(int i=startHeight; i>=end; i--){
+      if(column[i]!=0){
+        return false;
+      }
     }
-    return false;
+    return true;
   }
 
   static void printWorldArray(int[][] worldIn){
