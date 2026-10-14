@@ -1,6 +1,3 @@
-import java.lang.reflect.Array;
-import java.util.Arrays;
-
 public class ProceduralGeneration2D {
   /* RULES TO IMPLEMENT
   Island max height (can't be on top x layers? (just initialise i to x)) - done
@@ -24,9 +21,12 @@ public class ProceduralGeneration2D {
   */
 
   public static void main(String[] args){
-    int height=40;
+
+    int height=20;
     int width=150;
     int[][] world = new int[width][height];
+
+    int[] column = new int[height];
 
     int maxIslandLength = (int)Math.max((width/2), 1);
     double[] islandExtensionChances = new double[maxIslandLength+1];
@@ -34,6 +34,8 @@ public class ProceduralGeneration2D {
     for(int n=0; n<maxIslandLength+1; n++){
       islandExtensionChances[n] = (1-Math.pow(100, (float)n/(maxIslandLength)-1))/0.99;
     }
+
+    boolean spawn=false;
 
     double spawnChance = 0.02;
     double growChance = 0.9;//chance a tile with 4 or 5 parents also turns into a non-0 tile
@@ -45,7 +47,7 @@ public class ProceduralGeneration2D {
 
     int lastSpawn;
     int horizontalSpawnDistance = 4;
-    int verticalSpawnDistance = 10;
+    int verticalSpawnDistance = 4;
 
     int lParent=0;
     int rParent=0;
@@ -58,8 +60,12 @@ public class ProceduralGeneration2D {
       for(int k=0; k<width; k++){
         val=(Math.random());
 
-        hasVerticalSpace = verticalCheck(world[k], i, verticalSpawnDistance);
+        hasVerticalSpace = verticalCheck(world, k, i, verticalSpawnDistance);
         hasHorizontalSpace = k-lastSpawn>horizontalSpawnDistance?true:false;
+
+        if(hasVerticalSpace){
+          column = world[k];
+        }
 
         if(extensionNum!=0&&hasVerticalSpace){
           if(val<islandExtensionChances[extensionNum]){
@@ -75,6 +81,10 @@ public class ProceduralGeneration2D {
           lParent = Math.max(k-2, 0);
           rParent = Math.min(k+2, width-1);
           numParents=5;
+
+          if(!spawn){
+            spawn=val<spawnChance;
+          }
 
           for(int m=lParent; m<=rParent; m++){
             if(world[m][i-1]==0){
@@ -92,9 +102,10 @@ public class ProceduralGeneration2D {
             lastSpawn=k;
             extensionNum=0;
           }
-          else if(val<spawnChance&&hasVerticalSpace&&hasHorizontalSpace){
+          else if(spawn&&hasVerticalSpace&&hasHorizontalSpace){
             world[k][i]=1;
             lastSpawn=k;
+            spawn=false;
             extensionNum++;
           }
           else{
@@ -108,9 +119,19 @@ public class ProceduralGeneration2D {
     printWorldArray(world);
   }
 
-  static boolean verticalCheck(int[] column, int startHeight, int distance){
-    int end = Math.max(startHeight-distance, 0);
-    for(int i=startHeight; i>=end; i--){
+  static boolean verticalCheck(int[][] world, int startX, int startY, int distance){
+    startX = Math.max(0, startX-1);
+    for(int x=startX; x<=startX+2&&x<world.length; x++){
+      if(!columnCheck(world[x], startY, distance)){
+        return false;
+      }
+    }
+    return true;
+  }
+
+  static boolean columnCheck(int[] column, int startY, int distance){
+    int end = Math.max(startY-distance, 0);
+    for(int i=startY-1; i>=end; i--){
       if(column[i]!=0){
         return false;
       }
