@@ -4,11 +4,13 @@ public class ProceduralGeneration2D {
   */
 
   public static void main(String[] args){
-    int height=50;
-    int width=150;
+    int height=20;
+    int width=50;
     int[][] world = new int[width][height];
 
     world = spawnSurfaces(world);
+    printWorldArray(world);
+    System.out.println("");
     world = spawnDetails(world);
 
     printWorldArray(world);
@@ -27,7 +29,7 @@ public class ProceduralGeneration2D {
 
     boolean spawn=false;
 
-    double spawnChance = 0.001;
+    double spawnChance = 0.01;
 
     int extensionNum=0; 
 
@@ -151,8 +153,8 @@ public class ProceduralGeneration2D {
     double growChance = 0.9;//chance a tile with 4 or 5 parents also turns into a non-0 tile TODO
     double dripChance = 0.4;//chance any applicable tile with a vertical parent also turns into a non-0 tile TODO
 
+    int horizontalSpawnDistance = 5;
     int lastSpawnXThisRow;
-    int horizontalSpawnDistance = 5; //TODO both?
 
     int lParent=0; //TODO both?
     int rParent=0; //TODO both?
@@ -163,10 +165,21 @@ public class ProceduralGeneration2D {
 
     // create islands
     for(int i=2; i<height; i++){
+      int[] row = new int[width];
+      for(int j=0; j<width; j++){
+        row[j] = world[j][i];
+      }
+
+      lastSpawnXThisRow = -horizontalSpawnDistance-1;
+
       for(int k=0; k<width; k++){
         val=(Math.random());
 
-        //hasHorizontalSpace = k-lastSpawnXThisRow>horizontalSpawnDistance?true:false;
+        if(world[k][i]!=0){
+          lastSpawnXThisRow=k;
+        }
+
+        hasHorizontalSpace = k-lastSpawnXThisRow>horizontalSpawnDistance?true:false;
 
         lParent = Math.max(k-2, 0);
         rParent = Math.min(k+2, width-1);
@@ -178,13 +191,11 @@ public class ProceduralGeneration2D {
           }
         }
 
-        if(numParents>=4&&val<growChance*(numParents/5)){
+        if(hasHorizontalSpace&&numParents>=4&&val<growChance*(numParents/5)){
           world[k][i]=3;
-          lastSpawnXThisRow=k;
         }
-        else if(world[k][i-1]!=0&&val<dripChance){ // check for horizontal space
+        else if(world[k][i-1]!=0&&val<dripChance&&hasHorizontalSpace){ // check for horizontal space
           world[k][i]=4;
-          lastSpawnXThisRow=k;
         }
       }
     }
