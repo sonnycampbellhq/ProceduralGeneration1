@@ -4,9 +4,19 @@ public class ProceduralGeneration2D {
   */
 
   public static void main(String[] args){
-    int height=20;
+    int height=50;
     int width=150;
     int[][] world = new int[width][height];
+
+    world = spawnSurfaces(world);
+    world = spawnDetails(world);
+
+    printWorldArray(world);
+  }
+
+  static int[][] spawnSurfaces(int[][] world){
+    int width=world.length;
+    int height=world[0].length;
 
     int maxIslandLength = (int)Math.max((width/2), 1);
     double[] islandExtensionChances = new double[maxIslandLength+1];
@@ -18,17 +28,15 @@ public class ProceduralGeneration2D {
     boolean spawn=false;
 
     double spawnChance = 0.001;
-    double growChance = 0.9;//chance a tile with 4 or 5 parents also turns into a non-0 tile
-    double dripChance = 0.4;//chance any applicable tile with a vertical parent also turns into a non-0 tile
 
-    int extensionNum=0;
+    int extensionNum=0; 
 
-    boolean hasVerticalSpace;
-    boolean hasHorizontalSpace;
+    boolean hasVerticalSpace; //TODO both?
+    boolean hasHorizontalSpace; //TODO both?
 
     int lastSpawnXThisRow;
-    int horizontalSpawnDistance = 5;
-    int verticalSpawnDistance = 1;
+    int horizontalSpawnDistance = 5; //TODO both?
+    int verticalSpawnDistance = 1; //TODO both?
 
     int lastSpawnY=1;
     int highVerticalDistance=3;//if it reaches this many rows since last surface, each row will run repeatMax times for increased chance at surface spawn
@@ -36,10 +44,7 @@ public class ProceduralGeneration2D {
     int repeatMax=5;
     int repeatCount=0;
 
-    int lParent=0;
-    int rParent=0;
-    int numParents=3;
-    double val;
+    double val; // used for all randomness
 
     // create islands
     for(int i=2; i<height; i++){
@@ -70,31 +75,11 @@ public class ProceduralGeneration2D {
           }
         }
         else{
-          lParent = Math.max(k-2, 0);
-          rParent = Math.min(k+2, width-1);
-          numParents=5;
-
           if(!spawn){
             spawn=val<spawnChance;
           }
-
-          for(int m=lParent; m<=rParent; m++){
-            if(world[m][i-1]==0){
-              numParents--;
-            }
-          }
-
-          if(numParents>=4&&val<growChance*(numParents/5)){
-            world[k][i]=3;
-            lastSpawnXThisRow=k;
-            extensionNum=0;
-          }
-          else if(world[k][i-1]!=0&&val<dripChance&&hasHorizontalSpace){ // check for horizontal space?
-            world[k][i]=4;
-            lastSpawnXThisRow=k;
-            extensionNum=0;
-          }
-          else if(spawn&&hasVerticalSpace&&hasHorizontalSpace){
+          
+          if(spawn&&hasVerticalSpace&&hasHorizontalSpace){
             world[k][i]=1;
             lastSpawnXThisRow=k;
             lastSpawnY = i;
@@ -109,7 +94,7 @@ public class ProceduralGeneration2D {
       extensionNum=0;
     }
 
-    printWorldArray(world);
+    return world;
   }
 
   static boolean verticalCheck(int[][] world, int startX, int startY, int distance){
@@ -157,5 +142,52 @@ public class ProceduralGeneration2D {
       }
       System.out.println("");
     }
-  } 
+  }
+  
+  static int[][] spawnDetails(int[][] world){
+    int width=world.length;
+    int height=world[0].length;
+
+    double growChance = 0.9;//chance a tile with 4 or 5 parents also turns into a non-0 tile TODO
+    double dripChance = 0.4;//chance any applicable tile with a vertical parent also turns into a non-0 tile TODO
+
+    int lastSpawnXThisRow;
+    int horizontalSpawnDistance = 5; //TODO both?
+
+    int lParent=0; //TODO both?
+    int rParent=0; //TODO both?
+    int numParents=3; //TODO both?
+    double val; // used for all randomness
+
+    boolean hasHorizontalSpace;
+
+    // create islands
+    for(int i=2; i<height; i++){
+      for(int k=0; k<width; k++){
+        val=(Math.random());
+
+        //hasHorizontalSpace = k-lastSpawnXThisRow>horizontalSpawnDistance?true:false;
+
+        lParent = Math.max(k-2, 0);
+        rParent = Math.min(k+2, width-1);
+        numParents=5;
+
+        for(int m=lParent; m<=rParent; m++){
+          if(world[m][i-1]==0){
+            numParents--;
+          }
+        }
+
+        if(numParents>=4&&val<growChance*(numParents/5)){
+          world[k][i]=3;
+          lastSpawnXThisRow=k;
+        }
+        else if(world[k][i-1]!=0&&val<dripChance){ // check for horizontal space
+          world[k][i]=4;
+          lastSpawnXThisRow=k;
+        }
+      }
+    }
+    return world;
+  }
 }
