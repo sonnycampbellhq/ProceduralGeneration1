@@ -9,8 +9,6 @@ public class ProceduralGeneration2D {
     int[][] world = new int[width][height];
 
     world = spawnSurfaces(world);
-    printWorldArray(world);
-    System.out.println("");
     world = spawnDetails(world);
 
     printWorldArray(world);
@@ -38,7 +36,7 @@ public class ProceduralGeneration2D {
 
     int lastSpawnXThisRow;
     int horizontalSpawnDistance = 5; //TODO both?
-    int verticalSpawnDistance = 1; //TODO both?
+    int verticalSpawnDistance = 4; //TODO both?
 
     int lastSpawnY=1;
     int highVerticalDistance=3;//if it reaches this many rows since last surface, each row will run repeatMax times for increased chance at surface spawn
@@ -110,6 +108,7 @@ public class ProceduralGeneration2D {
   }
 
   static boolean columnCheck(int[] column, int startY, int distance){
+    startY=Math.min(startY, column.length);
     int end = Math.max(startY-distance, 0);
     for(int i=startY-1; i>=end; i--){
       if(column[i]!=0){
@@ -156,6 +155,10 @@ public class ProceduralGeneration2D {
     int horizontalSpawnDistance = 5;
     int lastSpawnXThisRow;
 
+    int verticalSpawnDistance = 3; //TODO both?
+
+    boolean hasVerticalSpace;
+
     int lParent=0; //TODO both?
     int rParent=0; //TODO both?
     int numParents=3; //TODO both?
@@ -179,6 +182,7 @@ public class ProceduralGeneration2D {
           lastSpawnXThisRow=k;
         }
 
+        hasVerticalSpace = verticalCheck(world, k, i+verticalSpawnDistance, verticalSpawnDistance-1);
         hasHorizontalSpace = k-lastSpawnXThisRow>horizontalSpawnDistance?true:false;
 
         lParent = Math.max(k-2, 0);
@@ -191,10 +195,10 @@ public class ProceduralGeneration2D {
           }
         }
 
-        if(hasHorizontalSpace&&numParents>=4&&val<growChance*(numParents/5)){
+        if(hasVerticalSpace&&hasHorizontalSpace&&numParents>=4&&val<growChance*(numParents/5)){
           world[k][i]=3;
         }
-        else if(world[k][i-1]!=0&&val<dripChance&&hasHorizontalSpace){ // check for horizontal space
+        else if(hasVerticalSpace&&hasHorizontalSpace&&world[k][i-1]!=0&&val<dripChance){ // check for horizontal space
           world[k][i]=4;
         }
       }
